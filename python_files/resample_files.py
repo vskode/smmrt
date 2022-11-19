@@ -58,7 +58,7 @@ def save_resampled_file(path, target_sr, target_folder, search_pattern='*.wav',
             if preserve_parent_dir:
                 new_dir = new_dir.joinpath(file.parent.stem)
             new_dir.mkdir(exist_ok=True, parents=True)
-        sf.write(new_dir.joinpath(file.stem+file.suffix), audio, target_sr)
+        sf.write(new_dir.joinpath(file.stem+'.wav'), audio, target_sr)
         
         # update progress
         print(r'Resampling file {}/{} from {} Hz to {} Hz | {:.3f}%'
@@ -89,4 +89,4 @@ if __name__ == '__main__':
     # path = r'/media/vincent/TOSHIBA EXT/5122/5122'
     save_resampled_file(path, target_sr=2000, target_folder='resampled_2kHz', 
                         reorder_files=False, preserve_parent_dir=True, 
-                        search_pattern='**/*.wav')
+                        search_pattern='**/*.aif')

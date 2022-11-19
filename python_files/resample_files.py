@@ -30,8 +30,8 @@ def create_dir_from_date(file, target_folder):
     new_dir.mkdir(exist_ok=True, parents=True)
     return new_dir
     
-def save_resampled_file(path, target_sr, target_folder, file_ending='.wav', 
-                        reorder_files=False, **kwargs):
+def save_resampled_file(path, target_sr, target_folder, search_pattern='*.wav', 
+                        reorder_files=False, preserve_parent_dir=False, **kwargs):
     """
     Save a file with a different sample rate compared to the original. 
     Key word arguments can be passed so that the a offset or duration can
@@ -44,19 +44,24 @@ def save_resampled_file(path, target_sr, target_folder, file_ending='.wav',
         file_ending (str, optional): Defaults to '.wav'.
         reorder_files (bool, optional): Defaults to False.
     """    
-    files = list(Path(path).glob(f'*{file_ending}'))
+    files = list(Path(path).glob(search_pattern))
     
     for i, file in enumerate(files):
         audio, sr = load_audio(file, **kwargs)
+        if audio is None:
+            continue
         audio = lb.resample(audio, orig_sr=sr, target_sr=target_sr)
         if reorder_files:
             new_dir = create_dir_from_date(file, target_folder)
         else:
-            new_dir = file.parent.joinpath(target_folder)
+            new_dir = file.parent.parent.joinpath(target_folder)
+            if preserve_parent_dir:
+                new_dir = new_dir.joinpath(file.parent.stem)
+            new_dir.mkdir(exist_ok=True, parents=True)
         sf.write(new_dir.joinpath(file.stem+file.suffix), audio, target_sr)
         
         # update progress
-        print(r'Resampling file {}/{} from {} Hz to {} Hz | {:.3f}% completed'
+        print(r'Resampling file {}/{} from {} Hz to {} Hz | {:.3f}%'
                 .format(i+1, len(files), sr, target_sr, (i+1)/len(files)*100), 
                 end='\r')
 
@@ -76,9 +81,12 @@ def load_audio(file, **kwargs):
         return audio, sr
     except Exception as e:
         print(f"{file} is corrupted. Moving on to next file", e)
+        return None, None
     
 if __name__ == '__main__':
     # path = r'D:\5122\5122'
-    path = r'/media/vincent/TOSHIBA EXT/5122/5122'
+    path = r'/media/vincent/Extreme SSD/MA/for_manual_annotation/src_to_be_annotated/'
+    # path = r'/media/vincent/TOSHIBA EXT/5122/5122'
     save_resampled_file(path, target_sr=2000, target_folder='resampled_2kHz', 
-                        reorder_files=True)
+                        reorder_files=False, preserve_parent_dir=True, 
+                        search_pattern='**/*.wav')

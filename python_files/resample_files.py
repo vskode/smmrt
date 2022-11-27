@@ -47,6 +47,7 @@ def save_resampled_file(path, target_sr, target_folder, search_pattern='*.wav',
     files = list(Path(path).glob(search_pattern))
     
     for i, file in enumerate(files):
+        
         audio, sr = load_audio(file, **kwargs)
         if audio is None:
             continue
@@ -60,6 +61,7 @@ def save_resampled_file(path, target_sr, target_folder, search_pattern='*.wav',
             new_dir.mkdir(exist_ok=True, parents=True)
         sf.write(new_dir.joinpath(file.stem+'.wav'), audio, target_sr)
         
+        del audio
         # update progress
         print(r'Resampling file {}/{} from {} Hz to {} Hz | {:.3f}%'
                 .format(i+1, len(files), sr, target_sr, (i+1)/len(files)*100), 
@@ -80,13 +82,13 @@ def load_audio(file, **kwargs):
         audio, sr = lb.load(file, sr=None, **kwargs)
         return audio, sr
     except Exception as e:
-        print(f"{file} is corrupted. Moving on to next file", e)
+        print(f"{file} is corrupted. \nMoving on to next file", e)
         return None, None
     
 if __name__ == '__main__':
     # path = r'D:\5122\5122'
-    path = r'/media/vincent/Extreme SSD/MA/for_manual_annotation/src_to_be_annotated/'
-    # path = r'/media/vincent/TOSHIBA EXT/5122/5122'
+    # path = r'/media/vincent/Extreme SSD/MA/for_manual_annotation/src_to_be_annotated/'
+    path = r'../MA/Data/for_manual_annotation/src_to_be_annotated/resampled_2kHz'
     save_resampled_file(path, target_sr=2000, target_folder='resampled_2kHz', 
                         reorder_files=False, preserve_parent_dir=True, 
-                        search_pattern='**/*.aif')
+                        search_pattern='**/*.flac')
